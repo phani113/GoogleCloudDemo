@@ -19,20 +19,20 @@ public class GoogleCloudServiceImpl {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GoogleCloudServiceImpl.class);
 
 	@Autowired
-	private CommonUitil quickstart;
+	private CommonUitil commonUitil;
 
 	public String getJsonContent(String fileName) throws IOException {
-		FileList result = GoogleCloudAuthServiceImpl.driveService.files().list().setPageSize(10).execute();
+		FileList result = GoogleCloudAuthServiceImpl.driveService.files().list().execute();
 		List<File> files = result.getFiles();
 		if (files == null || files.size() == 0) {
-			return "";
-		} else if (files.stream().filter(file -> file.getMimeType().equalsIgnoreCase("application/json")).count() > 0) {
-
-			File jsonfile = files.stream().filter(file -> file.getMimeType().equalsIgnoreCase("application/json"))
-					.findFirst().get();
-			return quickstart.getJsonResponse(GoogleCloudAuthServiceImpl.driveService, jsonfile.getId());
+			return "no json files found with this "+fileName ;
+		} 
+		File file = commonUitil.getFile(fileName);
+		
+		if (null !=file && file.getMimeType().equalsIgnoreCase("application/json")) {
+			return commonUitil.getJsonResponse(GoogleCloudAuthServiceImpl.driveService, file.getId());
 		}
-		return fileName;
+		return fileName+" is not json file";
 	}
 
 	public List<String> getFileNames(int pageSize) throws IOException {
@@ -52,18 +52,10 @@ public class GoogleCloudServiceImpl {
 	}
 
 	public byte[] downloadFile(String fileName) throws IOException {
-		String pageToken = null;
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-		do {
-			FileList result = GoogleCloudAuthServiceImpl.driveService.files().list()
-					.setQ("name =" + "'" + fileName + "'").setSpaces("drive")
-					.setFields("nextPageToken, files(id, name)").setPageToken(pageToken).execute();
-			for (File file : result.getFiles()) {
-				GoogleCloudAuthServiceImpl.driveService.files().get(file.getId())
-						.executeMediaAndDownloadTo(outputStream);
-			}
-			pageToken = result.getNextPageToken();
-		} while (pageToken != null);
+		File file = commonUitil.getFile(fileName);
+		GoogleCloudAuthServiceImpl.driveService.files().get(file.getId())
+		.executeMediaAndDownloadTo(outputStream);
 		return outputStream.toByteArray();
 
 	}

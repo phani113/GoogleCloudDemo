@@ -11,6 +11,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
@@ -99,5 +100,17 @@ public class CommonUitil {
             return buffer.lines().collect(Collectors.joining("\n"));
     	
     } 
+    
+    public File getFile(String fileName) throws IOException {
+		String pageToken = null;
+		FileList result = new FileList();
+		do {
+			 result = GoogleCloudAuthServiceImpl.driveService.files().list()
+					.setQ("name =" + "'" + fileName + "'").setSpaces("drive")
+					.setFields("nextPageToken, files(id, name, mimeType)").setPageToken(pageToken).execute();
+			pageToken = result.getNextPageToken();
+		} while (pageToken != null);
+		return !CollectionUtils.isEmpty(result.getFiles())? result.getFiles().get(0):null;
+	}
 
 }

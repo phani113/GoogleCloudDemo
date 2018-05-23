@@ -1,4 +1,4 @@
-package com.cloud.google.googleclouddemo;
+/*package com.cloud.google.googleclouddemo;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -14,3 +14,4 @@ public class GoogleclouddemoApplicationTests {
 	}
 
 }
+*/
