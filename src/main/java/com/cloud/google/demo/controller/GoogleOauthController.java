@@ -34,7 +34,6 @@ public class GoogleOauthController {
 
     @RequestMapping(value = "/oauth2callback", method = RequestMethod.GET, params = "code")
     public RedirectView oauth2Callback(@RequestParam(value = "code") String code, HttpServletRequest request) {
-
         googleCloudAuthServiceImpl.getDriveService(code);
         return new RedirectView("/getfilenames/10");
 
