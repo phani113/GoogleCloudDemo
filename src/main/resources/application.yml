@@ -1,16 +1,29 @@
-# this for local
-redirectUri: http://localhost:8080/oauth2callback
-
-server:
-  connection-timeout: 60000 
-  port: 8080   
-# this for production
-# redirectUri: https://my-project-204113.appspot.com/oauth2callback
-
 spring:
   application:
     name: GoogleCloudDemo
-    
+    port: 8080
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: 198541576821-khmmmhbijsa1t7gkct3smnlqohk5njn2.apps.googleusercontent.com
+            client-secret: ZfSn_zTmfatT_oFy-_zuGuAb
+
+# this for local
+#redirectUri: http://localhost:8080/oauth2callback
+# this for production
+redirectUri: https://my-project-204113.appspot.com/oauth2callback
+
+
+server:
+  connection-timeout:60000
+servlet:
+  session:
+    timeout: 30s
+
+
+
 #feign:
- # hystrix: 
+# hystrix:
 #    enabled: true

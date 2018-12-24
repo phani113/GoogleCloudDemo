@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -31,9 +32,12 @@ import com.google.api.services.drive.model.FileList;
 
 @Component
 public class CommonUitil {
-   
+
+    @Autowired
+    private GoogleCloudAuthServiceImpl googleCloudAuthServiceImpl;
+
     private void getJsonContent(Drive driveService) throws IOException {
-    	FileList result = driveService.files().list().setPageSize(10).execute();
+        FileList result = driveService.files().list().setPageSize(10).execute();
         List<File> files = result.getFiles();
         if (files == null || files.size() == 0) {
             System.out.println("No files found.");
@@ -41,19 +45,19 @@ public class CommonUitil {
             System.out.println("Files:");
             for (File file : files) {
                 System.out.printf("%s (%s)\n", file.getName(), file.getId());
-                if(file.getMimeType().equalsIgnoreCase("application/json")) {
-                	 
-                	String response = getJsonResponse(driveService, file.getId());
-                	System.out.println(response);
-                	
+                if (file.getMimeType().equalsIgnoreCase("application/json")) {
+
+                    String response = getJsonResponse(driveService, file.getId());
+                    System.out.println(response);
+
                 }
-               
+
             }
         }
     }
 
-	private static void getFileNames(Drive driveService) throws IOException {
-		FileList result = driveService.files().list().setPageSize(10).execute();
+    private static void getFileNames(Drive driveService) throws IOException {
+        FileList result = driveService.files().list().setPageSize(10).execute();
         List<File> files = result.getFiles();
         if (files == null || files.size() == 0) {
             System.out.println("No files found.");
@@ -61,56 +65,56 @@ public class CommonUitil {
             System.out.println("Files:");
             for (File file : files) {
                 System.out.printf("%s (%s)\n", file.getName(), file.getId());
-              //  if(file.getName().equals("jessy.jpg"))
+                //  if(file.getName().equals("jessy.jpg"))
                 //downloadFile(driveService, file.getId());
             }
         }
-	}
-    
-    public static File uploadFile(Drive driveService) throws IOException {
-    	
-    	File fileMetadata = new File();
-    	fileMetadata.setName("clientsecret.json");  
-    //	fileMetadata.setParents(Collections.singletonList(createFolder(driveService))); 	
-    	java.io.File filePath = new java.io.File("C:\\Users\\phanichandra.d\\Desktop\\client_secret.json");
-    	FileContent mediaContent = new FileContent("application/json", filePath);
-    	File file = driveService.files().create(fileMetadata, mediaContent)
-    	    .setFields("id")
-    	    .execute();
-    	return file;
     }
-    
-    public static String createFolder(Drive driveService) throws IOException {
-    	File fileMetadata = new File();
-    	fileMetadata.setName("driveuploadtest");
-    	fileMetadata.setMimeType("application/vnd.google-apps.folder");
 
-    	File file = driveService.files().create(fileMetadata)
-    	    .setFields("id")
-    	    .execute();
-    	return file.getId();
+    public static File uploadFile(Drive driveService) throws IOException {
+
+        File fileMetadata = new File();
+        fileMetadata.setName("clientsecret.json");
+        //	fileMetadata.setParents(Collections.singletonList(createFolder(driveService)));
+        java.io.File filePath = new java.io.File("C:\\Users\\phanichandra.d\\Desktop\\client_secret.json");
+        FileContent mediaContent = new FileContent("application/json", filePath);
+        File file = driveService.files().create(fileMetadata, mediaContent)
+                .setFields("id")
+                .execute();
+        return file;
     }
-    
+
+    public static String createFolder(Drive driveService) throws IOException {
+        File fileMetadata = new File();
+        fileMetadata.setName("driveuploadtest");
+        fileMetadata.setMimeType("application/vnd.google-apps.folder");
+
+        File file = driveService.files().create(fileMetadata)
+                .setFields("id")
+                .execute();
+        return file.getId();
+    }
+
     public String getJsonResponse(Drive driveService, String fileId) throws IOException {
-    	ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-    	driveService.files().get(fileId)
-    	    .executeMediaAndDownloadTo(outputStream);
-    	InputStream in = new ByteArrayInputStream(outputStream.toByteArray());
-    	BufferedReader buffer = new BufferedReader(new InputStreamReader(in));
-            return buffer.lines().collect(Collectors.joining("\n"));
-    	
-    } 
-    
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        driveService.files().get(fileId)
+                .executeMediaAndDownloadTo(outputStream);
+        InputStream in = new ByteArrayInputStream(outputStream.toByteArray());
+        BufferedReader buffer = new BufferedReader(new InputStreamReader(in));
+        return buffer.lines().collect(Collectors.joining("\n"));
+
+    }
+
     public File getFile(String fileName) throws IOException {
-		String pageToken = null;
-		FileList result = new FileList();
-		do {
-			 result = GoogleCloudAuthServiceImpl.driveService.files().list()
-					.setQ("name =" + "'" + fileName + "'").setSpaces("drive")
-					.setFields("nextPageToken, files(id, name, mimeType)").setPageToken(pageToken).execute();
-			pageToken = result.getNextPageToken();
-		} while (pageToken != null);
-		return !CollectionUtils.isEmpty(result.getFiles())? result.getFiles().get(0):null;
-	}
+        String pageToken = null;
+        FileList result = new FileList();
+        do {
+            result = googleCloudAuthServiceImpl.getDriveService().files().list()
+                    .setQ("name =" + "'" + fileName + "'").setSpaces("drive")
+                    .setFields("nextPageToken, files(id, name, mimeType)").setPageToken(pageToken).execute();
+            pageToken = result.getNextPageToken();
+        } while (pageToken != null);
+        return !CollectionUtils.isEmpty(result.getFiles()) ? result.getFiles().get(0) : null;
+    }
 
 }

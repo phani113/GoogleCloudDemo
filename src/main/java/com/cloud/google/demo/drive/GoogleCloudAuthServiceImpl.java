@@ -21,66 +21,71 @@ import com.google.api.services.drive.DriveScopes;
 
 @Service
 public class GoogleCloudAuthServiceImpl {
-	
-	@Value("${redirectUri}")
-	private String redirectUri;
-	
-	public static GoogleAuthorizationCodeFlow flow;
-	private Credential credential;
-	
-	public static Drive driveService;
-	
-	 private static HttpTransport HTTP_TRANSPORT;
-	 private static final Set<String> SCOPES = DriveScopes.all();
-	 
-	 static {
-	        try {
-	            HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();	          
-	        } catch (Throwable t) {
-	            t.printStackTrace();
-	            System.exit(1);
-	        }
-	    }
-	 
-	  /** Global instance of the JSON factory. */
-	    private static final JsonFactory JSON_FACTORY =
-	        JacksonFactory.getDefaultInstance();
-	    
-	    private static final String APPLICATION_NAME = "GoogleDriveTest";
-	
 
-	
-	 public String authorize() throws Exception {
-			AuthorizationCodeRequestUrl authorizationUrl;
-			if (flow == null) {			
-				 InputStream in =
-				            CommonUitil.class.getResourceAsStream("/client_secret.json");
-				 GoogleClientSecrets clientSecrets =
-				            GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
-				
-				  flow = new GoogleAuthorizationCodeFlow.Builder(
-	                        HTTP_TRANSPORT, JSON_FACTORY, clientSecrets, SCOPES)
-	                .setAccessType("offline")
-	                .build();			
-			}
-			authorizationUrl = flow.newAuthorizationUrl().setRedirectUri(redirectUri);
+    @Value("${redirectUri}")
+    private String redirectUri;
 
-			System.out.println("drive authorizationUrl ->" + authorizationUrl.build());
-			return authorizationUrl.build();
-		}
+    public GoogleAuthorizationCodeFlow flow;
+    private Credential credential;
 
-	
-	public void getDriveService(String code) {
-		try {
-			TokenResponse response = flow.newTokenRequest(code).setRedirectUri(redirectUri).execute();
-			credential = flow.createAndStoreCredential(response, "userID");
-			System.out.println(credential);
-			driveService = new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential).setApplicationName(APPLICATION_NAME)
-					.build();
+    private Drive driveService;
 
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
+    public Drive getDriveService() {
+        return this.driveService;
+    }
+
+    private static HttpTransport HTTP_TRANSPORT;
+    private static final Set<String> SCOPES = DriveScopes.all();
+
+    static {
+        try {
+            HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
+        } catch (Throwable t) {
+            t.printStackTrace();
+            System.exit(1);
+        }
+    }
+
+    /**
+     * Global instance of the JSON factory.
+     */
+    private static final JsonFactory JSON_FACTORY =
+            JacksonFactory.getDefaultInstance();
+
+    private static final String APPLICATION_NAME = "GoogleDriveTest";
+
+
+    public String authorize() throws Exception {
+        AuthorizationCodeRequestUrl authorizationUrl;
+        if (flow == null) {
+            InputStream in =
+                    CommonUitil.class.getResourceAsStream("/client_secret.json");
+            GoogleClientSecrets clientSecrets =
+                    GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
+
+            flow = new GoogleAuthorizationCodeFlow.Builder(
+                    HTTP_TRANSPORT, JSON_FACTORY, clientSecrets, SCOPES)
+                    .setAccessType("offline")
+                    .build();
+        }
+        authorizationUrl = flow.newAuthorizationUrl().setRedirectUri(redirectUri);
+
+        System.out.println("drive authorizationUrl ->" + authorizationUrl.build());
+        return authorizationUrl.build();
+    }
+
+
+    public void getDriveService(String code) {
+        try {
+            TokenResponse response = flow.newTokenRequest(code).setRedirectUri(redirectUri).execute();
+            credential = flow.createAndStoreCredential(response, "userID");
+            System.out.println(credential);
+            driveService = new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential).setApplicationName(APPLICATION_NAME)
+                    .build();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
 }
